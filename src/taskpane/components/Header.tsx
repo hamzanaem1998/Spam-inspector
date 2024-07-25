@@ -17,7 +17,7 @@ const useStyles = makeStyles({
     backgroundColor: tokens.colorNeutralBackground3,
   },
   message: {
-    fontSize: tokens.fontSizeHero900,
+    fontSize: tokens.fontSizeBase400,
     fontWeight: tokens.fontWeightRegular,
     fontColor: tokens.colorNeutralBackgroundStatic,
   },

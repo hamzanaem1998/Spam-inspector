@@ -17,7 +17,7 @@
   </Hosts>
   <Requirements>
     <Sets>
-      <Set Name="Mailbox" MinVersion="1.1"/>
+      <Set Name="Mailbox" MinVersion="1.14"/>
     </Sets>
   </Requirements>
   <FormSettings>
@@ -36,12 +36,21 @@
   <VersionOverrides xmlns="http://schemas.microsoft.com/office/mailappversionoverrides" xsi:type="VersionOverridesV1_0">
     <VersionOverrides xmlns="http://schemas.microsoft.com/office/mailappversionoverrides/1.1" xsi:type="VersionOverridesV1_1">
       <Requirements>
-        <bt:Sets DefaultMinVersion="1.3">
+        <bt:Sets DefaultMinVersion="1.14">
           <bt:Set Name="Mailbox"/>
         </bt:Sets>
       </Requirements>
       <Hosts>
         <Host xsi:type="MailHost">
+          <!-- Specifies the event-based activation runtime. -->
+          <!-- For more information, see https://learn.microsoft.com/office/dev/add-ins/outlook/autolaunch. -->
+          <Runtimes>
+            <!-- HTML file that references the JavaScript event handlers. This is used by Outlook on the web. -->
+            <Runtime resid="WebViewRuntime.Url">
+              <!-- JavaScript file that contains the event handlers. This is used by Outlook on Windows. -->
+              <Override type="javascript" resid="JSRuntime.Url"/>
+            </Runtime>
+          </Runtimes>
           <DesktopFormFactor>
             <FunctionFile resid="Commands.Url"/>
             <ExtensionPoint xsi:type="MessageReadCommandSurface">
@@ -77,11 +86,16 @@
         </bt:Images>
         <bt:Urls>
           <bt:Url id="Commands.Url" DefaultValue="https://localhost:3000/commands.html"/>
+          <bt:Url id="WebViewRuntime.Url" DefaultValue="https://localhost:3000/commands.html"/>
           <bt:Url id="Taskpane.Url" DefaultValue="https://localhost:3000/taskpane.html"/>
+          <bt:Url id="JSRuntime.Url" DefaultValue="https://localhost:3000/commands.js"/>
         </bt:Urls>
         <bt:ShortStrings>
-          <bt:String id="GroupLabel" DefaultValue="Spam inspector"/>
-          <bt:String id="TaskpaneButton.Label" DefaultValue="DGSSI Add-in"/>
+          <bt:String id="GroupLabel" DefaultValue="Dgssi encrypt"/>
+          <bt:String id="TaskpaneButton.Label" DefaultValue="Decrypt interface"/>
+          <bt:String id="TaskpaneButton.Title" DefaultValue="Descrypt interface"/>
+          <bt:String id="FunctionButton.Label" DefaultValue="Encrypt user message"/>
+          <bt:String id="FunctionButton.Title" DefaultValue="Encrypt user message"/>
         </bt:ShortStrings>
         <bt:LongStrings>
           <bt:String id="TaskpaneButton.Tooltip" DefaultValue="Ouvrir le panneau de tâches"/>
