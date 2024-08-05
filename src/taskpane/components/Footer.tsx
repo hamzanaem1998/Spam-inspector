@@ -1,27 +1,9 @@
 import * as React from "react";
-import { makeStyles } from "@fluentui/react-components";
-
-const useStyles = makeStyles({
-  container: {
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    marginTop: "20px",
-  },
-  scoreText: {
-    fontSize: "18px",
-    fontWeight: "bold",
-  },
-});
+import FooterStyles from "../styles/FooterStyles";
 
 const Footer: React.FC = () => {
-  const styles = useStyles();
-
-  return (
-    <div className={styles.container}>
-      <p className={styles.scoreText}>Score est :</p>
-    </div>
-  );
+  const styles = FooterStyles();
+  return <div className={styles.footer}>Copyright © 2024 DGSSI All rights reserved.</div>;
 };
 
 export default Footer;

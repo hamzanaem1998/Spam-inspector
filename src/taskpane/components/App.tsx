@@ -7,20 +7,27 @@ import { makeStyles } from "@fluentui/react-components";
 interface AppProps {
   title: string;
 }
-//ghhhhh
+
 const useStyles = makeStyles({
   root: {
     minHeight: "100vh",
+    display: "flex",
+    flexDirection: "column",
+  },
+  content: {
+    flex: 1,
   },
 });
 
-const App: React.FC<AppProps> = (props: AppProps) => {
+const App: React.FC<AppProps> = () => {
   const styles = useStyles();
 
   return (
     <div className={styles.root}>
-      <Header logo="assets/logo-filled.png" title={props.title} message="DGSSI Add-in Spam inspector" />
-      <Body />
+      <Header logo="assets/logo-filled.png" message="DGSSI Add-in for detecting email spam through AI-powered scanning" />
+      <div className={styles.content}>
+        <Body />
+      </div>
       <Footer />
     </div>
   );
