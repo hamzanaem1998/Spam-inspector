@@ -1,0 +1,46 @@
+body {
+    font-family: Arial, sans-serif;
+    padding: 1px;
+}
+
+#resultContainer {
+    margin-left: 3%;
+    margin-right: 3%;
+    font-size: 3.5vh; 
+    font-family: Arial, Helvetica, sans-serif;
+    text-align: left;
+}
+
+.result-band {
+    height: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding-left: 10px;
+    margin-bottom: 10px;
+    color: white; /* Default text color */
+}
+
+.result-icon {
+    font-size: 30px; /* Adjust the icon size */
+}
+
+.normalPopup {
+    background-color: #d4edda; /* Light Green Background */
+    border: 2px solid #c3e6cb; /* Slightly darker green for border */
+    color: #155724; /* Dark green for text */
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Light Red Style for Spam Email Popup */
+  .spamPopup {
+    background-color: #f8d7da; /* Light Red Background */
+    border: 2px solid #f5c6cb; /* Slightly darker red for border */
+    color: #721c24; /* Dark red for text */
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
+

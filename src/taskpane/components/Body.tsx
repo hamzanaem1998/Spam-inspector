@@ -1,59 +1,101 @@
 import * as React from 'react';
-import { Button, Dialog, DialogTrigger, DialogSurface, DialogTitle, DialogBody, DialogContent, DialogActions } from '@fluentui/react-components';
+import { Button } from '@fluentui/react-components';
+import { CheckmarkCircle24Filled, ErrorCircle24Filled, Add16Regular } from '@fluentui/react-icons';
+import Swal from 'sweetalert2';
 import { getEmailContent } from '../utils/taskpane';
 import { extractDetails } from '../utils/parseJson';
-import { EmailContent } from '../interfaces/EmailContent';
+import { FormattedApiResponse } from '../interfaces/FormattedApiResponse';
 import BodyStyles from '../styles/BodyStyles';
 
 const Body: React.FC = () => {
   const styles = BodyStyles();
-  const [details, setDetails] = React.useState<EmailContent | null>(null);
+  const [details, setDetails] = React.useState<FormattedApiResponse | null>(null);
 
-  const handleGetEmail = async () => {
+  const cleanText = (text: string) => {
+    const cleanedText = text.replace(/\\n/g, '').replace(/\[\+\]/g, '');
+    return cleanedText;
+  };
+
+  const handleGetResponse = async () => {
     try {
       const result = await getEmailContent();
-      const extractedDetails = extractDetails(result);
-      setDetails(extractedDetails);
+      if (result) {
+        const extractedDetails = extractDetails(result);
+        setDetails(extractedDetails);
+      } else {
+        console.log("No data available");
+      }
     } catch (error) {
-      console.error('Error getting email content:', error);
+      setDetails(null);
+      Swal.fire({
+        icon: 'error',
+        title: 'Erreur lors de la récupérations des résultats. Veuillez réessayer',
+        confirmButtonText: 'OK',
+        width: '90%',
+        customClass: {
+          popup: styles.customSwalPopup,
+        },
+      });
+    }
+  };
+
+  const openDialog = async () => {
+    try {
+      const dialogUrl = `${window.location.origin}/dialog.html`;
+
+      Office.context.ui.displayDialogAsync(
+        dialogUrl,
+        { height: 50, width: 50, displayInIframe: true, promptBeforeOpen: false },
+        (asyncResult) => {
+          if (asyncResult.status === Office.AsyncResultStatus.Failed) {
+            console.error(asyncResult.error.message);
+          } else {
+            setTimeout(() => {
+              const dialog: Office.Dialog = asyncResult.value;
+              const messageToDialog = JSON.stringify(details);
+              dialog.messageChild(messageToDialog);
+              console.log('Message sent from parent');
+            }, 1000);
+          }
+        }
+      );
+    } catch (error) {
+      console.error('Failed to open dialog: ', error);
     }
   };
 
   return (
-    <div className={styles.container}>
-      <Button appearance="primary" onClick={handleGetEmail}>
-        Get Email
+    <div className={styles.bodyContainer}>
+      <Button className={styles.resultButton} appearance="primary" onClick={handleGetResponse}>
+        Afficher résultat
       </Button>
       {details && (
         <>
-          <div className={styles.score}>
-            Score: {details.score}
+          <div className={styles.detailsContainer}>
+            {/* Icon based on result */}
+            {details.result === 'normal' ? (
+              <CheckmarkCircle24Filled style={{ color: 'green', marginRight: '8px' }} />
+            ) : (
+              <ErrorCircle24Filled style={{ color: 'red', marginRight: '8px' }} />
+            )}
+            <div className={styles.detailText}>
+              <b>Result: </b>{details.result}
+            </div>
+            <div className={styles.detailText}>
+              <b>Score: </b>{details.score}
+            </div>
+            <div className={styles.detailText}>
+              <b>Report: </b>{cleanText(details.report || '')}
+            </div>
           </div>
-          <Dialog>
-            <DialogTrigger disableButtonEnhancement>
-            <Button appearance="secondary" className={styles.button}>
-              Show more details
-            </Button>
-            </DialogTrigger>
-            <DialogSurface>
-              <DialogBody>
-                <DialogTitle>
-                  More details about result
-                </DialogTitle>
-                <DialogContent>
-                  <p><strong>Score:</strong> {details.score}</p>
-                  <p><strong>Result:</strong> {details.result}</p>
-                  <p><strong>Report:</strong> {details.report}</p>
-                  <p><strong>Scan Duration:</strong> {details.scanDuration}</p>
-                </DialogContent>
-                <DialogActions>
-                  <DialogTrigger disableButtonEnhancement>
-                    <Button appearance="secondary">Close</Button>
-                  </DialogTrigger>
-                </DialogActions>
-              </DialogBody>
-            </DialogSurface>
-          </Dialog>
+          <Button
+            className={styles.detailsButton}
+            appearance="secondary"
+            onClick={openDialog}
+            icon={<Add16Regular />}
+          >
+            Afficher plus de détails
+          </Button>
         </>
       )}
     </div>

@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script type="text/javascript" src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div id="resultContainer"></div>
+
+    <script>
+        const cleanText = (text) => {
+            // Retirer toutes les occurrences de "[+]" et "\n" par une chaine vide
+            console.log(JSON.stringify(text));
+            const cleanedText = text.replace(/\\n/g, '')
+                .replace(/\[\+\]/g, '');
+
+            // Retourner tout le texte sans les deux derniers caractères
+            return cleanedText;
+        };
+
+        const splitDataParts = (data) => {
+            const regexParts = /URL CONNECTION/g;
+            const regexSplit = /}}/g;
+            let match;
+
+            // Compte le nombre de parties contenant "URL CONNECTION"
+            const countParts = (data.match(regexParts) || []).length;
+
+            // Stocke les index des accolades fermantes "}}"
+            const indexCurlyBrackets = [];
+            while ((match = regexSplit.exec(data)) !== null) {
+                indexCurlyBrackets.push(match.index);
+            }
+
+            // Crée un tableau pour stocker les parties splitées
+            const dataParts = [];
+
+            // Boucle pour itérer et splitter les données selon les index
+            let start = 0;
+            for (let i = 0; i < countParts; i++) {
+                const end = indexCurlyBrackets[i] + 2; // Ajouter 2 pour inclure les accolades fermantes
+                dataParts.push(data.slice(start, end + 1)); // Ajouter 1 pour inclure le dernier caractère
+                start = end + 1;
+            }
+
+            return dataParts;
+        };
+
+        const extractUrlName = (texts) => {
+            const quoteIndexes = [];
+
+            // Boucle pour trouver les index des guillemets
+            for (let i = 0; i < texts.length; i++) {
+                if (texts[i] === '"') {
+                    quoteIndexes.push(i);
+                }
+            }
+
+            // Extraire la sous-chaîne entre les deux guillemets, en excluant les guillemets eux-mêmes
+            return texts.substring(quoteIndexes[0] + 1, quoteIndexes[1]);
+        };
+
+        const storeUrlNames = (sText) => {
+            const urlNames = [];
+            const parts = splitDataParts(sText); // Obtenez les parties splitées
+
+            for (let i = 0; i < parts.length; i++) {
+                urlNames.push(extractUrlName(parts[i])); // Utilisez chaque partie individuellement
+            }
+
+            return urlNames;
+        };
+
+        const parseHttpData = (input) => {
+            const regex = /^"([^"]+)"\s*:\s*"([^"]+[\s\S]*)"$/;
+            const match = input.match(regex);
+
+            if (!match) {
+                return null;
+            }
+
+            const urlDescription = match[2];
+            const firstCurlyBraceIndex = urlDescription.indexOf('{');
+
+            if (firstCurlyBraceIndex === -1) {
+                return null;
+            }
+
+            const urlDescriptionHeader = urlDescription.substring(0, firstCurlyBraceIndex).trim();
+            let urlDescriptionBody = urlDescription.substring(firstCurlyBraceIndex).trim();
+
+            // Remplacement des simples guillemets par des doubles guillemets
+            urlDescriptionBody = urlDescriptionBody.replace(/'/g, '"');
+
+            // Suppression de "[+]" des clés
+            urlDescriptionBody = urlDescriptionBody.replace(/"\[\+\]\s/g, '"');
+
+            // Nettoyage des espaces autour des clés et des valeurs
+            urlDescriptionBody = urlDescriptionBody.replace(/\s*:\s*/g, ': ');
+
+            // Conversion en objet JSON
+            const jsonObject = JSON.parse(urlDescriptionBody);
+
+            return {
+                urlDescriptionHeader,
+                jsonObject
+            };
+        };
+
+        Office.onReady(function () {
+            Office.context.ui.addHandlerAsync(Office.EventType.DialogParentMessageReceived, onMessageFromParent);
+        });
+
+        function onMessageFromParent(arg) {
+            try {
+                const messageFromParent = JSON.parse(arg.message);
+                console.log('Received message:', messageFromParent);
+
+                const resultContainer = document.getElementById('resultContainer');
+
+                // Determine the color and icon based on the result
+                let bandColor = messageFromParent.result && messageFromParent.result.toLowerCase() === 'normal' ? 'green' : 'red';
+                let icon = messageFromParent.result && messageFromParent.result.toLowerCase() === 'normal' ? '✔️' : '⚠️';
+
+                // Create the band with an icon
+                let bandContent = `
+                <div class="result-band" style="background-color: ${bandColor};">
+                    <span class="result-icon">${icon}</span>
+                </div>
+                `;
+
+                // Check the result and set the background color of the body
+                if (messageFromParent.result && messageFromParent.result.toLowerCase() === 'normal') {
+                    document.getElementById("resultContainer").style.backgroundColor = "#d4edda";
+                    document.getElementById("resultContainer").style.color = "#155724";
+                } else {
+                    document.getElementById("resultContainer").style.backgroundColor = "#f8d7da";
+                    document.getElementById("resultContainer").style.color = "#721c24";
+                }
+
+
+                if (resultContainer) {
+                    // Construire le contenu à afficher avec style
+                    let content = `
+                        ${bandContent} <!-- Add the band content at the top -->
+                        <p style="margin-left: 2%;"><b>Result : </b>${messageFromParent.result}</p>
+                        <p style="margin-left: 2%;"><b>Score : </b>${messageFromParent.score}</p>
+                        <p style="margin-left: 2%;"><b>Report : </b>${cleanText(messageFromParent.report)}</p>
+                        <p style="margin-left: 2%;"><b>Scan Duration : </b>${messageFromParent.scanDuration}</p>
+                    `;
+
+                    const splitData = splitDataParts(messageFromParent.data);
+
+                    // Ajouter la partie Data uniquement si elle existe
+                    if (messageFromParent.data) {
+                        const arrayUrlNames = storeUrlNames(messageFromParent.data);
+                        content += `<p style="margin-left: 2%;"><b>URLs trouvés : </b>${arrayUrlNames.length}</p>`;
+
+                        // Démarrer le tableau HTML principal
+                        content += `<table border="1" style="border-collapse: collapse; margin-left: 0.75%; margin-right: 0.75%;">`;
+                        content += `<thead><tr><th>&nbsp;&nbsp;URL</th><th>&nbsp;&nbsp;Détails</th></tr></thead>`;
+                        content += `<tbody>`;
+
+                        const splitData = splitDataParts(messageFromParent.data); // Assurez-vous que splitDataParts retourne bien les parties de données.
+                        const splitDataFormated = [];
+
+                        // Boucle pour remplir les lignes du tableau
+                        for (let i = 0; i < arrayUrlNames.length; i++) {
+                            content += `<tr>`;
+                            content += `<td>&nbsp;&nbsp;${arrayUrlNames[i]}&nbsp;&nbsp;</td>`; // Première colonne pour les URL
+                            splitDataFormated[i] = splitData[i].replace(/^,\s*/, '');
+                            const urlData = parseHttpData(splitDataFormated[i]);
+                            // Access to the urlDescriptionHeader + 4 nested JSON
+                            const urlDescriptionHeaderValue = urlData?.urlDescriptionHeader;
+                            const urlConnection = urlData?.jsonObject["URL CONNECTION"];
+                            const dnsRecord = urlData?.jsonObject["DNS RECORD"];
+                            const whoIsRecord = urlData?.jsonObject["WHOIS RECORD"];
+                            const tlsRecord = urlData?.jsonObject["TLS RECORD"];
+
+                            // Commencez la cellule de la deuxième colonne
+                            content += `<td>`;
+                            // Insérez le tableau imbriqué dans la même cellule
+                            content += `
+                                <p style="margin-left: 1%;">${cleanText(urlDescriptionHeaderValue)}</p>
+                                <table border="1" style="border-collapse: collapse; margin-left: 3%; margin-top: 1%; margin-bottom: 1%; width: 95%;">
+                                    <tr>
+                                        <th>&nbsp;&nbsp;Element</th>
+                                        <th>&nbsp;&nbsp;Result</th>
+                                    </tr>
+                                    <tr>
+                                        <td>&nbsp;URL CONNECTION</td>
+                                        <td>&nbsp;&nbsp;• URL: ${urlConnection["URL"]} <br> &nbsp;&nbsp;• HTTP_Status: ${urlConnection["HTTP_status"]}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>&nbsp;DNS RECORD</td>
+                                        <td>&nbsp;&nbsp;• Domaine_name: ${dnsRecord["Domain_name"]} <br> &nbsp;&nbsp;• A_record: ${dnsRecord["A_Record"]}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>&nbsp;WHOIS RECORD</td>
+                                        <td>&nbsp;&nbsp;• Domain_Registrar: ${whoIsRecord["Domain_Registrar"]} <br> &nbsp;&nbsp;• Domain_Registered_Country: ${whoIsRecord["Domain_Registered_Country"]} <br> &nbsp;&nbsp;• Creation_date: ${whoIsRecord["creation_date"]} <br> &nbsp;&nbsp;• Expiration_date: ${whoIsRecord["expiration_date"]}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>&nbsp;TLS RECORD</td>
+                                        <td>&nbsp;&nbsp;• Host_name: ${tlsRecord["host_name"]} <br> &nbsp;&nbsp;• Country: ${tlsRecord["Country"]} <br> &nbsp;&nbsp;• Issuer: ${tlsRecord["Issuer "]} <br> &nbsp;&nbsp;• Valid_from: ${tlsRecord["valid_from"]} <br> &nbsp;&nbsp;• Valid_until: ${tlsRecord["valid_until"]} <br> &nbsp;&nbsp;• Signature_Algorithm: ${tlsRecord["Signature_Algorithm "]}</td>
+                                    </tr>
+                                </table>
+                            `;
+                            // Fermez la cellule de la deuxième colonne
+                            content += `</td>`;
+
+                            content += `</tr>`;
+                        }
+
+                        // Fermer le tableau HTML principal
+                        content += `</tbody></table>`;
+                        content += `<br>`;
+                    }
+
+                    // Afficher le contenu
+                    resultContainer.innerHTML = content;
+                }
+
+            } catch (error) {
+                console.error('Error parsing message from parent:', error);
+            }
+        }
+    </script>
+
+
+</body>
+
+</html>
