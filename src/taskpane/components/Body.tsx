@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Button } from '@fluentui/react-components';
+import { Button, Spinner } from '@fluentui/react-components';
 import { CheckmarkCircle24Filled, ErrorCircle24Filled, Add16Regular } from '@fluentui/react-icons';
 import Swal from 'sweetalert2';
 import { getEmailContent } from '../utils/taskpane';
@@ -9,7 +9,8 @@ import BodyStyles from '../styles/BodyStyles';
 
 const Body: React.FC = () => {
   const styles = BodyStyles();
-  const [details, setDetails] = React.useState<FormattedApiResponse | null>(null);
+  const [details, setDetails] = React.useState<FormattedApiResponse | null>(null); // State to manage details
+  const [loading, setLoading] = React.useState<boolean>(false); // State to manage loading spinner
 
   const cleanText = (text: string) => {
     const cleanedText = text.replace(/\\n/g, '').replace(/\[\+\]/g, '');
@@ -17,6 +18,7 @@ const Body: React.FC = () => {
   };
 
   const handleGetResponse = async () => {
+    setLoading(true); // Show spinner
     try {
       const result = await getEmailContent();
       if (result) {
@@ -36,6 +38,8 @@ const Body: React.FC = () => {
           popup: styles.customSwalPopup,
         },
       });
+    } finally {
+      setLoading(false); // Hide spinner
     }
   };
 
@@ -69,10 +73,14 @@ const Body: React.FC = () => {
       <Button className={styles.resultButton} appearance="primary" onClick={handleGetResponse}>
         Afficher résultat
       </Button>
-      {details && (
+      {loading && ( // Show spinner while loading
+        <div className={styles.spinnerContainer}>
+          <Spinner label="Scan en cours..." />
+        </div>
+      )}
+      {!loading && details && ( // Show details only after loading is complete
         <>
           <div className={styles.detailsContainer}>
-            {/* Icon based on result */}
             {details.result === 'normal' ? (
               <CheckmarkCircle24Filled style={{ color: 'green', marginRight: '8px' }} />
             ) : (

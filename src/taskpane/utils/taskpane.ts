@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { EmailPayload } from '../interfaces/EmailPayload';
 import { sortJson } from './sortJson';
+import { extractLinks } from './extractLinks';
 
 // Fonction pour obtenir le contenu de l'email et retourner la réponse de l'API sous forme de chaîne
 export async function getEmailContent(): Promise<string> {
@@ -32,7 +33,7 @@ export async function getEmailContent(): Promise<string> {
                   sender,
                   receivers,
                   subject,
-                  body: emailBodyText,
+                  body: emailBodyText + extractLinks(emailBodyHtml),
                 };
 
                 // Clé API et URL de l'API

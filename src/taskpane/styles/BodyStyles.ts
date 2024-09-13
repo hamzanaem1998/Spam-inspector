@@ -34,6 +34,14 @@ const BodyStyles = makeStyles({
       color: 'red',
       fontSize: '65%',
     },
+    spinnerContainer: {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      height: '100px', // Ajustez la hauteur selon vos besoins
+      width: '100%',   // S'étend pour occuper toute la largeur
+      marginTop: '10px',
+    },
   });
 
 export default BodyStyles;
