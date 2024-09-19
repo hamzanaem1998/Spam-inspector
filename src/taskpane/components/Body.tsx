@@ -4,12 +4,12 @@ import { CheckmarkCircle24Filled, ErrorCircle24Filled, Add16Regular } from '@flu
 import Swal from 'sweetalert2';
 import { getEmailContent } from '../utils/taskpane';
 import { extractDetails } from '../utils/parseJson';
-import { FormattedApiResponse } from '../interfaces/FormattedApiResponse';
+import { ApiResponse } from '../interfaces/ApiResponse';
 import BodyStyles from '../styles/BodyStyles';
 
 const Body: React.FC = () => {
   const styles = BodyStyles();
-  const [details, setDetails] = React.useState<FormattedApiResponse | null>(null); // State to manage details
+  const [details, setDetails] = React.useState<ApiResponse | null>(null); // State to manage details
   const [loading, setLoading] = React.useState<boolean>(false); // State to manage loading spinner
 
   const cleanText = (text: string) => {

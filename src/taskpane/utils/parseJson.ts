@@ -1,6 +1,6 @@
-import { FormattedApiResponse } from "../interfaces/FormattedApiResponse";
+import { ApiResponse } from "../interfaces/ApiResponse";
 
-export const extractDetails = (jsonStr: string): FormattedApiResponse => {
+export const extractDetails = (jsonStr: string): ApiResponse => {
   const resultRegex = /"result":\s*"([^"]*)"/;
     const scoreRegex = /"score":\s*"([^"]*)"/;
     const reportRegex = /"report":\s*"([^"]*)"/;
