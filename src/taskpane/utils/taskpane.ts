@@ -28,17 +28,19 @@ export async function getEmailContent(): Promise<string> {
                 const receivers = Office.context.mailbox.item?.to.map((recipient) => recipient.emailAddress).join(', ');
                 const subject = Office.context.mailbox.item?.subject;
 
-                // Payload à envoyer à l'API : type EmailPayload
-                const payload: EmailPayload = {
-                  sender,
-                  receivers,
-                  subject,
-                  body: emailBodyText + extractLinks(emailBodyHtml),
+                const payload = {
+                  "more_details": "0",
+                  "output": "json",
+                  "from_addr": sender,
+                  "to_addr": receivers,
+                  "subject": subject,
+                  "body": emailBodyText  + " " +  extractLinks(emailBodyHtml).join(' ')
                 };
 
                 // Clé API et URL de l'API
                 const apiKey = "8511c01b2929ad83b4683a7847adf9cdd101ab069fb2c46a056b1dd8c6f2a887";
-                const apiUrl = 'http://127.0.0.1:5000/data';
+                // const apiUrl = 'http://127.0.0.1:5000/data';
+                const apiUrl = 'https://192.168.39.55:7766/scan';
 
                 // Configuration des en-têtes pour la requête Axios
                 const config = {
@@ -51,12 +53,15 @@ export async function getEmailContent(): Promise<string> {
                 // Envoyer la requête POST à l'API avec Axios
                 axios.post(apiUrl, payload, config)
                   .then(response => {
-                    if (response.status === 201) {
+                    if (response.status === 200) {
                       console.log('Response returned from API');
 
-                      const dataAsString = JSON.stringify(response.data);
+                      console.log(response);
+                      console.log(typeof(response.data));
 
-                      const dataAsStringAsObject = JSON.parse(dataAsString);
+                      //const dataAsString = JSON.stringify(response.data);
+
+                      const dataAsStringAsObject = JSON.parse(response.data);
                       const sortedData = sortJson(dataAsStringAsObject);
                       const sortedDataAsString = JSON.stringify(sortedData);
 

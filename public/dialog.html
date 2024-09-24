@@ -123,8 +123,8 @@
                 const resultContainer = document.getElementById('resultContainer');
 
                 // Determine the color and icon based on the result
-                let bandColor = messageFromParent.result && messageFromParent.result.toLowerCase() === 'normal' ? 'green' : 'red';
-                let icon = messageFromParent.result && messageFromParent.result.toLowerCase() === 'normal' ? '✔️' : '⚠️';
+                let bandColor = messageFromParent.result && messageFromParent.result.toLowerCase().startsWith('normal') ? 'green' : 'red';
+                let icon = messageFromParent.result && messageFromParent.result.toLowerCase().startsWith('normal') ? '✔️' : '⚠️';
 
                 // Create the band with an icon
                 let bandContent = `
@@ -134,7 +134,7 @@
                 `;
 
                 // Check the result and set the background color of the body
-                if (messageFromParent.result && messageFromParent.result.toLowerCase() === 'normal') {
+                if (messageFromParent.result && messageFromParent.result.toLowerCase().startsWith('normal') ) {
                     document.getElementById("resultContainer").style.backgroundColor = "#d4edda";
                     document.getElementById("resultContainer").style.color = "#155724";
                 } else {

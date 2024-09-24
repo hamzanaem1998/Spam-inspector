@@ -81,7 +81,7 @@ const Body: React.FC = () => {
       {!loading && details && ( // Show details only after loading is complete
         <>
           <div className={styles.detailsContainer}>
-            {details.result === 'normal' ? (
+            {details.result.startsWith('normal') ? (
               <CheckmarkCircle24Filled style={{ color: 'green', marginRight: '8px' }} />
             ) : (
               <ErrorCircle24Filled style={{ color: 'red', marginRight: '8px' }} />
